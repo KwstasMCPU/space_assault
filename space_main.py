@@ -34,6 +34,7 @@ alien_height = 15
 alien_vessel = Alien(WHITE, alien_width, alien_height)
 alien_vessel.rect.x = 350
 alien_vessel.rect.y = 150
+move_left = True
 # setting up the lists
 lazer_list = pygame.sprite.Group()
 all_sprites_list = pygame.sprite.Group()
@@ -81,11 +82,20 @@ while RUNNING:
         if lazer.rect.y < -1:
             lazer_list.remove(lazer)
             all_sprites_list.remove(lazer)
-   
+
     
+     
     # alien moveshet
-    alien_vessel.moveRandomY(choices([-2,2]))
-    alien_vessel.moveRandomX(choices([-2,2]))
+    if move_left == True:
+        alien_vessel.moveLeft()
+    else:
+        alien_vessel.moveRight()
+    if alien_vessel.rect.x < 300:
+        move_left = False
+    if alien_vessel.rect.x > 400:
+        move_left = True
+    
+    
     
     # Drawing
     # Clear the screan (screen to black)

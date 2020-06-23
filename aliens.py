@@ -8,22 +8,12 @@ BLACK = (0,0,0)
 class Alien(Hero):
     '''
     child class from Hero Parent Class
-    '''
+    ''' 
+    def moveRight(self):
+        self.rect.x += 1
 
-    def moveRandomY(self, pixels):
-        self.rect.y += pixels.pop()
-        if self.rect.y < 100:
-            self.rect.y = 100
-        if self.rect.y > 300:
-            self.rect.y = 300
-       
-    
-    def moveRandomX(self, pixels):
-        self.rect.x += pixels.pop()
-        if self.rect.x < 300:
-            self.rect.x = 300
-        if self.rect.x > 400:
-            self.rect.x = 400
+    def moveLeft(self):
+        self.rect.x -= 1
         
 
  

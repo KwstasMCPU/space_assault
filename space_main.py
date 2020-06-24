@@ -4,43 +4,50 @@ import time
 from hero import Hero
 from aliens import Alien
 from hero_lazer import Lazer
-from random import choices
+from random import randrange, choice, randint
 
 
 pygame.init() # Prepare the pygame module for use
 
 # setting up the screen
-size = (700 , 750)
-screen = pygame.display.set_mode(size)
+screen_size = (700 , 750)
+screen = pygame.display.set_mode(screen_size)
 pygame.display.set_caption('Space Invaders')
 
 # setting colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GREEN = (0,255,0)
 
 # setting the clock
 clock = pygame.time.Clock()
 
 #sprites
+all_sprites_list = pygame.sprite.Group()
+alien_vessels_list = pygame.sprite.Group()
+lazer_list = pygame.sprite.Group()
 # hero spacehip
 hero_width = 15
-hero_height = 25
-hero_spaceship = Hero(WHITE, hero_width, hero_height)
+hero_height = 26
+hero_spaceship = Hero(WHITE, hero_height, hero_width)
 hero_spaceship.rect.x = 350
 hero_spaceship.rect.y = 700
-# alien vessels
-alien_width = 20
-alien_height = 15
-alien_vessel = Alien(WHITE, alien_width, alien_height)
-alien_vessel.rect.x = 350
-alien_vessel.rect.y = 150
-move_left = True
-# setting up the lists
-lazer_list = pygame.sprite.Group()
-all_sprites_list = pygame.sprite.Group()
 all_sprites_list.add(hero_spaceship)
-all_sprites_list.add(alien_vessel)
-
+# alien vessels
+alien_height = 10
+alien_width = 15
+alien_direction_list = []   #
+init_pos_list = []          # both alien_direction_list and init_pos_list are used in order to determine the periodical movement of every alien object
+# setting up the lists
+# alien generator
+for i in range(20):
+    alien_vessel = Alien(GREEN, alien_height, alien_width)
+    alien_vessel.rect.x = randrange(screen_size[0])
+    alien_vessel.rect.y = randrange(screen_size[1]-180)
+    init_pos_list.append(alien_vessel.get_initial_pos())
+    alien_direction_list.append(alien_vessel.get_initial_dir())
+    alien_vessels_list.add(alien_vessel)
+    all_sprites_list.add(alien_vessel)
 
 #-------------- main program loop
 RUNNING = True
@@ -57,7 +64,7 @@ while RUNNING:
             # lazer gun # space for shoot
             if event.key==pygame.K_SPACE: 
                         lazer_shoot = Lazer(WHITE, 4, 5)
-                        lazer_shoot.rect.x = hero_spaceship.rect.x
+                        lazer_shoot.rect.x = hero_spaceship.rect.x + 5
                         lazer_shoot.rect.y = hero_spaceship.rect.y
                         all_sprites_list.add(lazer_shoot)
                         lazer_list.add(lazer_shoot)
@@ -72,28 +79,34 @@ while RUNNING:
         hero_spaceship.moveLeft(5)
     if keys[pygame.K_RIGHT]:
         hero_spaceship.moveRight(5)
-         
+
+       
     # --- Game logic
     all_sprites_list.update()
 
     # lazer mechanics
     # remove lazer if flies off the screen
     for lazer in lazer_list:
-        if lazer.rect.y < -1:
+        if lazer.rect.y < 0:
             lazer_list.remove(lazer)
             all_sprites_list.remove(lazer)
 
     
      
-    # alien moveshet
-    if move_left == True:
-        alien_vessel.moveLeft()
-    else:
-        alien_vessel.moveRight()
-    if alien_vessel.rect.x < 300:
-        move_left = False
-    if alien_vessel.rect.x > 400:
-        move_left = True
+    # # alien moveshet
+    i = 0
+    for alien in alien_vessels_list:    
+        if alien_direction_list[i]:
+            alien.moveLeft()
+        else:
+            alien.moveRight()
+        if alien.rect.x < (init_pos_list[i] - choice([40,50])):
+            alien.moveRight()
+            alien_direction_list[i] = not alien_direction_list[i]
+        if alien.rect.x > (init_pos_list[i] + choice([40,50])):
+            alien.moveLeft()
+            alien_direction_list[i] = not alien_direction_list[i]
+        i += 1
     
     
     

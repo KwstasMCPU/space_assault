@@ -27,27 +27,31 @@ all_sprites_list = pygame.sprite.Group()
 alien_vessels_list = pygame.sprite.Group()
 lazer_list = pygame.sprite.Group()
 # hero spacehip
-hero_width = 15
-hero_height = 26
+hero_width = 10
+hero_height = 20
 hero_spaceship = Hero(WHITE, hero_height, hero_width)
 hero_spaceship.rect.x = 350
 hero_spaceship.rect.y = 700
 all_sprites_list.add(hero_spaceship)
 # alien vessels
 alien_height = 10
-alien_width = 15
+alien_width = 10
 alien_direction_list = []   #
 init_pos_list = []          # both alien_direction_list and init_pos_list are used in order to determine the periodical movement of every alien object
+margin = 60                 # the initial distance between aliens
 # setting up the lists
 # alien generator
-for i in range(20):
-    alien_vessel = Alien(GREEN, alien_height, alien_width)
-    alien_vessel.rect.x = randrange(screen_size[0])
-    alien_vessel.rect.y = randrange(screen_size[1]-180)
-    init_pos_list.append(alien_vessel.get_initial_pos())
-    alien_direction_list.append(alien_vessel.get_initial_dir())
-    alien_vessels_list.add(alien_vessel)
-    all_sprites_list.add(alien_vessel)
+
+for x in range(margin, screen_size[0] - margin, margin):
+    for y in range(margin, int(screen_size[1]/2), margin):
+        alien_vessel = Alien(GREEN, alien_height, alien_width)
+        alien_vessel.rect.x = x
+        alien_vessel.rect.y = y 
+        init_pos_list.append(alien_vessel.get_initial_pos())
+        alien_direction_list.append(alien_vessel.get_initial_dir())
+        alien_vessels_list.add(alien_vessel)
+        all_sprites_list.add(alien_vessel)
+    
 
 #-------------- main program loop
 RUNNING = True
@@ -90,25 +94,25 @@ while RUNNING:
         if lazer.rect.y < 0:
             lazer_list.remove(lazer)
             all_sprites_list.remove(lazer)
-
     
      
-    # # alien moveshet
+    # alien moveshet
     i = 0
     for alien in alien_vessels_list:    
         if alien_direction_list[i]:
             alien.moveLeft()
         else:
             alien.moveRight()
-        if alien.rect.x < (init_pos_list[i] - choice([40,50])):
+        if alien.rect.x < (init_pos_list[i] - choice([10, 20])):
             alien.moveRight()
             alien_direction_list[i] = not alien_direction_list[i]
-        if alien.rect.x > (init_pos_list[i] + choice([40,50])):
+        if alien.rect.x > (init_pos_list[i] + choice([10, 20])):
             alien.moveLeft()
             alien_direction_list[i] = not alien_direction_list[i]
         i += 1
     
-    
+    # See if the lazer block has collided with anything. if yes both lazer and aliens are removed from their lists
+    collisions = pygame.sprite.groupcollide(lazer_list, alien_vessels_list, True, True)
     
     # Drawing
     # Clear the screan (screen to black)

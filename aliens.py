@@ -3,7 +3,6 @@ from hero import Hero
 from random import choice
 import time
 
-BLACK = (0,0,0)
 
 class Alien(Hero):
 

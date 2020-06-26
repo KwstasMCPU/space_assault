@@ -46,27 +46,26 @@ for x in range(margin, screen_size[0] - margin, margin):
     for y in range(margin, int(screen_size[1]/2), margin):
         alien_vessel = Alien(GREEN, alien_height, alien_width)
         alien_vessel.rect.x = x
-        alien_vessel.rect.y = y 
+        alien_vessel.rect.y = y
         init_pos_list.append(alien_vessel.get_initial_pos())
         alien_direction_list.append(alien_vessel.get_initial_dir())
         alien_vessels_list.add(alien_vessel)
         all_sprites_list.add(alien_vessel)
-    
 
 #-------------- main program loop
 RUNNING = True
 while RUNNING:
 
-#-------------- polls for events 
+#-------------- polls for events
     # quiting game
-    for event in pygame.event.get(): 
-        if event.type == pygame.QUIT: 
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
             RUNNING = False
         elif event.type==pygame.KEYDOWN:
-            if event.key==pygame.K_ESCAPE: 
+            if event.key==pygame.K_ESCAPE:
                 RUNNING = False
             # lazer gun # space for shoot
-            if event.key==pygame.K_SPACE: 
+            if event.key==pygame.K_SPACE:
                         lazer_shoot = Lazer(WHITE, 4, 5)
                         lazer_shoot.rect.x = hero_spaceship.rect.x + 5
                         lazer_shoot.rect.y = hero_spaceship.rect.y
@@ -84,7 +83,6 @@ while RUNNING:
     if keys[pygame.K_RIGHT]:
         hero_spaceship.moveRight(5)
 
-       
     # --- Game logic
     all_sprites_list.update()
 
@@ -94,11 +92,10 @@ while RUNNING:
         if lazer.rect.y < 0:
             lazer_list.remove(lazer)
             all_sprites_list.remove(lazer)
-    
-     
+
     # alien moveshet
     i = 0
-    for alien in alien_vessels_list:    
+    for alien in alien_vessels_list:
         if alien_direction_list[i]:
             alien.moveLeft()
         else:
@@ -110,10 +107,10 @@ while RUNNING:
             alien.moveLeft()
             alien_direction_list[i] = not alien_direction_list[i]
         i += 1
-    
+
     # See if the lazer block has collided with anything. if yes both lazer and aliens are removed from their lists
     collisions = pygame.sprite.groupcollide(lazer_list, alien_vessels_list, True, True)
-    
+
     # Drawing
     # Clear the screan (screen to black)
     screen.fill(BLACK)
@@ -123,7 +120,7 @@ while RUNNING:
 
     # update the screen with the drawn
     pygame.display.flip()
-    
+
     # limit fps
     clock.tick(60)
 

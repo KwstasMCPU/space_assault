@@ -11,7 +11,7 @@ class Hero(pygame.sprite.Sprite):
         self.image.fill(BLACK)
         self.image.set_colorkey(BLACK)
 
-        # Draw the spaceship 
+        # Draw the spaceship
         pygame.draw.rect(self.image, color, [0, 0, width, height])
 
         # Fetch the rectangle object that has the dimensions of the image.

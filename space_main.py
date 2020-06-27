@@ -1,11 +1,8 @@
-import os, sys
-import pygame
-import time
+import pygame, time
 from hero import Hero
 from aliens import Alien
 from hero_lazer import Lazer
 from random import randrange, choice, randint
-
 
 pygame.init() # Prepare the pygame module for use
 
@@ -18,9 +15,14 @@ pygame.display.set_caption('Space Invaders')
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0,255,0)
+RED = (255, 0, 0)
 
 # setting the clock
 clock = pygame.time.Clock()
+
+#setting sounds
+crash_effect = pygame.mixer.Sound('crash_sound1.wav') # sound effect from deep rock galactic game
+lazer_sound = pygame.mixer.Sound('lazer_shoot1.wav') # sound effect from https://www.zapsplat.com/
 
 #sprites
 all_sprites_list = pygame.sprite.Group()
@@ -41,16 +43,38 @@ init_pos_list = []          # both alien_direction_list and init_pos_list are us
 margin = 60                 # the initial distance between aliens
 # setting up the lists
 # alien generator
+def alien_generator(alien_color):
+    '''
+    multiplies the alien object on the screen.
+    setting up the x,y coordinates with the value of margin between them
+    '''
+    for x in range(margin, screen_size[0] - margin, margin):
+        for y in range(margin, int(screen_size[1]/2), margin):
+            alien_vessel = Alien(alien_color, alien_height, alien_width)
+            alien_vessel.rect.x = x
+            alien_vessel.rect.y = y
+            init_pos_list.append(alien_vessel.get_initial_pos())
+            alien_direction_list.append(alien_vessel.get_initial_dir())
+            alien_vessels_list.add(alien_vessel)
+            all_sprites_list.add(alien_vessel)
 
-for x in range(margin, screen_size[0] - margin, margin):
-    for y in range(margin, int(screen_size[1]/2), margin):
-        alien_vessel = Alien(GREEN, alien_height, alien_width)
-        alien_vessel.rect.x = x
-        alien_vessel.rect.y = y
-        init_pos_list.append(alien_vessel.get_initial_pos())
-        alien_direction_list.append(alien_vessel.get_initial_dir())
-        alien_vessels_list.add(alien_vessel)
-        all_sprites_list.add(alien_vessel)
+alien_generator(GREEN)
+
+# alien movement
+def alien_movement(alien_vessels_list, i):
+
+    for alien in alien_vessels_list:
+        if alien_direction_list[i]:
+            alien.moveLeft()
+        else:
+            alien.moveRight()
+        if alien.rect.x < (init_pos_list[i] - choice([10, 20])):
+            alien.moveRight()
+            alien_direction_list[i] = not alien_direction_list[i]
+        if alien.rect.x > (init_pos_list[i] + choice([10, 20])):
+            alien.moveLeft()
+            alien_direction_list[i] = not alien_direction_list[i]
+        i += 1
 
 #-------------- main program loop
 RUNNING = True
@@ -66,9 +90,10 @@ while RUNNING:
                 RUNNING = False
             # lazer gun # space for shoot
             if event.key==pygame.K_SPACE:
-                        lazer_shoot = Lazer(WHITE, 4, 5)
+                        lazer_shoot = Lazer(RED, 4, 5)
                         lazer_shoot.rect.x = hero_spaceship.rect.x + 5
                         lazer_shoot.rect.y = hero_spaceship.rect.y
+                        lazer_sound.play()
                         all_sprites_list.add(lazer_shoot)
                         lazer_list.add(lazer_shoot)
     # controling hero spacehip  # arrow keys for movment
@@ -95,21 +120,12 @@ while RUNNING:
 
     # alien moveshet
     i = 0
-    for alien in alien_vessels_list:
-        if alien_direction_list[i]:
-            alien.moveLeft()
-        else:
-            alien.moveRight()
-        if alien.rect.x < (init_pos_list[i] - choice([10, 20])):
-            alien.moveRight()
-            alien_direction_list[i] = not alien_direction_list[i]
-        if alien.rect.x > (init_pos_list[i] + choice([10, 20])):
-            alien.moveLeft()
-            alien_direction_list[i] = not alien_direction_list[i]
-        i += 1
+    alien_movement(alien_vessels_list, i)
 
     # See if the lazer block has collided with anything. if yes both lazer and aliens are removed from their lists
     collisions = pygame.sprite.groupcollide(lazer_list, alien_vessels_list, True, True)
+    if collisions:
+        crash_effect.play()
 
     # Drawing
     # Clear the screan (screen to black)

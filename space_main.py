@@ -2,7 +2,8 @@ import pygame, time
 from hero import Hero
 from aliens import Alien
 from hero_lazer import Lazer
-from random import randrange, choice, randint
+from alien_lazer import Alien_lazer
+from random import randrange, choice, choices, randint
 
 pygame.init() # Prepare the pygame module for use
 
@@ -16,28 +17,32 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0,255,0)
 RED = (255, 0, 0)
+PURPLE = (128,0,128)
 
 # setting the clock
 clock = pygame.time.Clock()
 
 #setting sounds
-crash_effect = pygame.mixer.Sound('alien_vessel_explosion.wav') # sound effect from https://www.zapsplat.com/
-lazer_sound = pygame.mixer.Sound('lazer_shoot1.wav') # sound effect from https://www.zapsplat.com/
+crash_effect = pygame.mixer.Sound('sounds/alien_vessel_explosion.wav')  # sound effect from https://www.zapsplat.com/
+lazer_sound = pygame.mixer.Sound('sounds/lazer_shoot1.wav')             # sound effect from https://www.zapsplat.com/
 
 #sprites
 all_sprites_list = pygame.sprite.Group()
 alien_vessels_list = pygame.sprite.Group()
-lazer_list = pygame.sprite.Group()
+hero_lazer_list = pygame.sprite.Group()
+alien_lazer_list = pygame.sprite.Group()
 # hero spacehip
 hero_width = 10
 hero_height = 20
-hero_spaceship = Hero(WHITE, hero_height, hero_width)
+hero_health = 3
+hero_spaceship = Hero(WHITE, hero_height, hero_width, hero_health)
 hero_spaceship.rect.x = 350
 hero_spaceship.rect.y = 700
 all_sprites_list.add(hero_spaceship)
 # alien vessels
 alien_height = 10
 alien_width = 10
+alien_health = 1
 alien_direction_list = []   #
 alien_pos_list = []         # both alien_direction_list and alien_pos_list are used in order to determine the initial position and direction, which are used in the alien_movement function
 margin = 60                 # the initial distance between aliens
@@ -50,7 +55,7 @@ def alien_generator(alien_color):
     '''
     for x in range(margin, screen_size[0] - margin, margin):
         for y in range(margin, int(screen_size[1]/2), margin):
-            alien_vessel = Alien(alien_color, alien_height, alien_width)
+            alien_vessel = Alien(alien_color, alien_height, alien_width, alien_health)
             alien_vessel.rect.x = x
             alien_vessel.rect.y = y
             alien_pos_list.append(alien_vessel.get_initial_pos())
@@ -61,13 +66,21 @@ def alien_generator(alien_color):
 alien_generator(GREEN)
 
 # alien movement
-def alien_movement(alien_vessels_list, i):
+def alien_movement_and_attacking(alien_vessels_list, i):
     '''
     sets the movement of the alien instances.
     the Alien class has a get__initial_pos and get_initial_dir method which gets their initial x,y coordinations and direction(left or right),
     those are stored within relevant lists ( alien_pos_list and alien_direction_list).
     '''
     for alien in alien_vessels_list:
+        alien_attack = choices([True, False], weights=[1, 5000])
+        if alien_attack[0] == True:
+            alien_lazer_shoot = Alien_lazer(PURPLE, 4, 5, 1)
+            alien_lazer_shoot.rect.x = alien.rect.x
+            alien_lazer_shoot.rect.y = alien.rect.y
+            lazer_sound.play()
+            all_sprites_list.add(alien_lazer_shoot)
+            alien_lazer_list.add(alien_lazer_shoot)
         if alien_direction_list[i]:
             alien.moveLeft()
         else:
@@ -79,6 +92,18 @@ def alien_movement(alien_vessels_list, i):
             alien.moveLeft()
             alien_direction_list[i] = not alien_direction_list[i]
         i += 1
+
+def remove_lazers_from_screen(hero_lazer_list, alien_lazer_list):
+        # remove hero lazer if flies off the screen
+        for lazer in hero_lazer_list:
+            if lazer.rect.y < 0:
+                hero_lazer_list.remove(lazer)
+                all_sprites_list.remove(lazer)
+        # remove alien lazer if flies off the screen
+        for lazer in alien_lazer_list:
+            if lazer.rect.y > 750:
+                alien_lazer_list.remove(lazer)
+                all_sprites_list.remove(lazer)
 
 #-------------- main program loop
 RUNNING = True
@@ -94,12 +119,12 @@ while RUNNING:
                 RUNNING = False
             # lazer gun # space for shoot
             if event.key==pygame.K_SPACE:
-                        lazer_shoot = Lazer(RED, 4, 5)
-                        lazer_shoot.rect.x = hero_spaceship.rect.x + 5
-                        lazer_shoot.rect.y = hero_spaceship.rect.y
+                        hero_lazer_shoot = Lazer(RED, 4, 5, 1)
                         lazer_sound.play()
-                        all_sprites_list.add(lazer_shoot)
-                        lazer_list.add(lazer_shoot)
+                        hero_lazer_shoot.rect.x = hero_spaceship.rect.x + 5
+                        hero_lazer_shoot.rect.y = hero_spaceship.rect.y
+                        all_sprites_list.add(hero_lazer_shoot)
+                        hero_lazer_list.add(hero_lazer_shoot)
     # controling hero spacehip  # arrow keys for movment
     keys = pygame.key.get_pressed()
     # moving the spaceship
@@ -116,20 +141,24 @@ while RUNNING:
     all_sprites_list.update()
 
     # lazer mechanics
-    # remove lazer if flies off the screen
-    for lazer in lazer_list:
-        if lazer.rect.y < 0:
-            lazer_list.remove(lazer)
-            all_sprites_list.remove(lazer)
+    # remove lazers if fly off the screen
+    remove_lazers_from_screen(hero_lazer_list, alien_lazer_list)
 
     # alien moveshet
     i = 0
-    alien_movement(alien_vessels_list, i)
+    alien_movement_and_attacking(alien_vessels_list, i)
+
 
     # See if the lazer block has collided with anything. if yes both lazer and aliens are removed from their lists
-    collisions = pygame.sprite.groupcollide(lazer_list, alien_vessels_list, True, True)
-    if collisions:
+    hero_lazer_to_aliens_collision = pygame.sprite.groupcollide(hero_lazer_list, alien_vessels_list, True, True)
+    alien_lazer_to_hero_collision = pygame.sprite.spritecollide(hero_spaceship, alien_lazer_list, True)
+    if hero_lazer_to_aliens_collision:
         crash_effect.play()
+    if alien_lazer_to_hero_collision:
+        crash_effect.play()
+        hero_spaceship.health -= 1
+        if hero_spaceship.health == 0:
+            all_sprites_list.remove(hero_spaceship)
 
     # Drawing
     # Clear the screan (screen to black)

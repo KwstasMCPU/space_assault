@@ -3,7 +3,7 @@ import pygame
 BLACK = (0,0,0)
 
 class Hero(pygame.sprite.Sprite):
-    def __init__(self, color, height, width):
+    def __init__(self, color, height, width, health):
         super().__init__()
 
         self.image = pygame.Surface([width, height])
@@ -13,6 +13,7 @@ class Hero(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, color, [0, 0, width, height])
         # Fetch the rectangle object that has the dimensions of the image.
         self.rect = self.image.get_rect()
+        self.health = health
 
     def moveUp(self, pixels):
         self.rect.y -= pixels
@@ -23,17 +24,17 @@ class Hero(pygame.sprite.Sprite):
     def moveDown(self, pixels):
         self.rect.y += pixels
         # Check if the Hero is off the edge of the screen (y-axis)
-        if self.rect.y > 740:
-            self.rect.y = 740
+        if self.rect.y > 730:
+            self.rect.y = 730
 
     def moveLeft(self, pixels):
         # Check if the Hero is off the edge of the screen (y-axis)
         self.rect.x -= pixels
-        if self.rect.x < 8:
-            self.rect.x = 8
+        if self.rect.x < 0:
+            self.rect.x = 0
 
     def moveRight(self, pixels):
         self.rect.x += pixels
         # Check if the Hero is off the edge of the screen (y-axis)
-        if self.rect.x > 670:
-            self.rect.x = 670
+        if self.rect.x > 690:
+            self.rect.x = 690

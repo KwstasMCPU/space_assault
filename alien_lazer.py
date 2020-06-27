@@ -1,8 +1,7 @@
 import pygame
 from hero import Hero
 
-class Lazer(Hero):
+class Alien_lazer(Hero):
 
     def update(self):
-        self.rect.y -= 6
-
+        self.rect.y -= -6

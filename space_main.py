@@ -21,7 +21,7 @@ RED = (255, 0, 0)
 clock = pygame.time.Clock()
 
 #setting sounds
-crash_effect = pygame.mixer.Sound('crash_sound1.wav') # sound effect from deep rock galactic game
+crash_effect = pygame.mixer.Sound('alien_vessel_explosion.wav') # sound effect from https://www.zapsplat.com/
 lazer_sound = pygame.mixer.Sound('lazer_shoot1.wav') # sound effect from https://www.zapsplat.com/
 
 #sprites
@@ -106,7 +106,7 @@ while RUNNING:
     if keys[pygame.K_UP]:
         hero_spaceship.moveUp(5)
     if keys[pygame.K_DOWN]:
-        hero_spaceship.moveDown(5) 
+        hero_spaceship.moveDown(5)
     if keys[pygame.K_LEFT]:
         hero_spaceship.moveLeft(5)
     if keys[pygame.K_RIGHT]:

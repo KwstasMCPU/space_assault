@@ -39,7 +39,7 @@ all_sprites_list.add(hero_spaceship)
 alien_height = 10
 alien_width = 10
 alien_direction_list = []   #
-init_pos_list = []          # both alien_direction_list and init_pos_list are used in order to determine the periodical movement of every alien object
+alien_pos_list = []         # both alien_direction_list and alien_pos_list are used in order to determine the initial position and direction, which are used in the alien_movement function
 margin = 60                 # the initial distance between aliens
 # setting up the lists
 # alien generator
@@ -53,7 +53,7 @@ def alien_generator(alien_color):
             alien_vessel = Alien(alien_color, alien_height, alien_width)
             alien_vessel.rect.x = x
             alien_vessel.rect.y = y
-            init_pos_list.append(alien_vessel.get_initial_pos())
+            alien_pos_list.append(alien_vessel.get_initial_pos())
             alien_direction_list.append(alien_vessel.get_initial_dir())
             alien_vessels_list.add(alien_vessel)
             all_sprites_list.add(alien_vessel)
@@ -62,16 +62,20 @@ alien_generator(GREEN)
 
 # alien movement
 def alien_movement(alien_vessels_list, i):
-
+    '''
+    sets the movement of the alien instances.
+    the Alien class has a get__initial_pos and get_initial_dir method which gets their initial x,y coordinations and direction(left or right),
+    those are stored within relevant lists ( alien_pos_list and alien_direction_list).
+    '''
     for alien in alien_vessels_list:
         if alien_direction_list[i]:
             alien.moveLeft()
         else:
             alien.moveRight()
-        if alien.rect.x < (init_pos_list[i] - choice([10, 20])):
+        if alien.rect.x < (alien_pos_list[i] - choice([10, 20])):
             alien.moveRight()
             alien_direction_list[i] = not alien_direction_list[i]
-        if alien.rect.x > (init_pos_list[i] + choice([10, 20])):
+        if alien.rect.x > (alien_pos_list[i] + choice([10, 20])):
             alien.moveLeft()
             alien_direction_list[i] = not alien_direction_list[i]
         i += 1

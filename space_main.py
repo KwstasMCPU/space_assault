@@ -7,31 +7,42 @@ from random import randrange, choice, choices, randint
 
 pygame.init() # Prepare the pygame module for use
 
-# setting up the screen
+# Initialise screen screen
 screen_size = (700 , 750)
 screen = pygame.display.set_mode(screen_size)
 pygame.display.set_caption('Space Invaders')
 
-# setting colors
+# Score
+score = 0
+
+# difficulty
+easy = 4000
+normal = 2600
+hard = 1100
+epic = 500
+
+# Setting colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0,255,0)
 RED = (255, 0, 0)
 PURPLE = (128,0,128)
 
-# setting the clock
+# Setting the clock
 clock = pygame.time.Clock()
 
-#setting sounds
+# Setting sounds
 crash_effect = pygame.mixer.Sound('sounds/alien_vessel_explosion.wav')  # sound effect from https://www.zapsplat.com/
 lazer_sound = pygame.mixer.Sound('sounds/lazer_shoot1.wav')             # sound effect from https://www.zapsplat.com/
 
-#sprites
+# Sprites
+# setting up the groups
 all_sprites_list = pygame.sprite.Group()
 alien_vessels_list = pygame.sprite.Group()
 hero_lazer_list = pygame.sprite.Group()
 alien_lazer_list = pygame.sprite.Group()
-# hero spacehip
+
+# Hero spacehip
 hero_width = 10
 hero_height = 20
 hero_health = 3
@@ -39,15 +50,15 @@ hero_spaceship = Hero(WHITE, hero_height, hero_width, hero_health)
 hero_spaceship.rect.x = 350
 hero_spaceship.rect.y = 700
 all_sprites_list.add(hero_spaceship)
-# alien vessels
+# Alien vessels
 alien_height = 10
 alien_width = 10
 alien_health = 1
 alien_direction_list = []   #
 alien_pos_list = []         # both alien_direction_list and alien_pos_list are used in order to determine the initial position and direction, which are used in the alien_movement function
 margin = 60                 # the initial distance between aliens
-# setting up the lists
-# alien generator
+
+# Alien generator
 def alien_generator(alien_color):
     '''
     multiplies the alien object on the screen.
@@ -65,15 +76,15 @@ def alien_generator(alien_color):
 
 alien_generator(GREEN)
 
-# alien movement
-def alien_movement_and_attacking(alien_vessels_list, i):
+# Alien movement
+def alien_movement_and_attacking(alien_vessels_list, i, difficulty=normal):
     '''
     sets the movement of the alien instances.
     the Alien class has a get__initial_pos and get_initial_dir method which gets their initial x,y coordinations and direction(left or right),
     those are stored within relevant lists ( alien_pos_list and alien_direction_list).
     '''
     for alien in alien_vessels_list:
-        alien_attack = choices([True, False], weights=[1, 5000])
+        alien_attack = choices([True, False], weights=[1, difficulty])
         if alien_attack[0] == True:
             alien_lazer_shoot = Alien_lazer(PURPLE, 4, 5, 1)
             alien_lazer_shoot.rect.x = alien.rect.x
@@ -105,9 +116,92 @@ def remove_lazers_from_screen(hero_lazer_list, alien_lazer_list):
                 alien_lazer_list.remove(lazer)
                 all_sprites_list.remove(lazer)
 
-#-------------- main program loop
+def display_message(font, font_size, message, x, y):
+    screen.fill(BLACK)
+    font = pygame.font.Font(font, font_size)
+    text = font.render(message, 1, WHITE)
+    screen.blit(text, (x, y))
+
+def you_lost():
+    global LOST_MSG_SCREEN
+    screen.fill(BLACK)
+    display_message("AtariSmall.ttf", 30, 'Humanity is doomed. Continue? [y]/[n]', 50, 350)
+    pygame.display.flip()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        elif event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_n or event.key==pygame.K_ESCAPE:
+                pygame.quit()
+                quit()
+            if event.key==pygame.K_y:
+                for alien in alien_vessels_list:
+                    alien.kill()
+                alien_generator(GREEN)
+                hero_spaceship = Hero(WHITE, 10, 10, 3)
+                hero_spaceship.rect.x = 350
+                hero_spaceship.rect.y = 700
+                all_sprites_list.add(hero_spaceship)
+                LOST_MSG_SCREEN = False
+    return LOST_MSG_SCREEN
+
+# def you_won():
+
+def paused():
+    global PAUSE
+    screen.fill(BLACK)
+    display_message("AtariSmall.ttf", 30, 'Paused', 300, 350)
+    pygame.display.flip()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        elif event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_p:
+                PAUSE = False
+            if event.key==pygame.K_ESCAPE:
+                pygame.quit()
+                quit()
+    return PAUSE
+
+def game_introduction():
+    INTRO = True
+    while INTRO:
+        screen.fill(BLACK)
+        display_message("AtariSmall.ttf", 30, 'PRESS \'E\' : Ez, \'N\' : Normal, \'H\' : HARD', 50, 350)
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key==pygame.K_ESCAPE:
+                    pygame.quit()
+                    quit()
+                if event.key == pygame.K_e:
+                    difficulty = easy
+                    INTRO = False
+                if event.key == pygame.K_n:
+                    difficulty = normal
+                    INTRO = False
+                if event.key == pygame.K_h:
+                    difficulty = hard
+                    INTRO = False
+                # hidden difficulty
+                if event.key == pygame.K_1:
+                    difficulty = epic
+                    INTRO = False
+    return difficulty
+
+#-------------- main program loop -------------------------------------------------------------------#
+INTRO = True
 RUNNING = True
 while RUNNING:
+
+    while INTRO:
+        game_introduction()
+        INTRO = False
 
 #-------------- polls for events
     # quiting game
@@ -117,6 +211,10 @@ while RUNNING:
         elif event.type==pygame.KEYDOWN:
             if event.key==pygame.K_ESCAPE:
                 RUNNING = False
+            if event.key==pygame.K_p:
+                PAUSE = True
+                while PAUSE:
+                    paused()
             # lazer gun # space for shoot
             if event.key==pygame.K_SPACE:
                         hero_lazer_shoot = Lazer(RED, 4, 5, 1)
@@ -137,28 +235,32 @@ while RUNNING:
     if keys[pygame.K_RIGHT]:
         hero_spaceship.moveRight(5)
 
-    # --- Game logic
+    # ---- Game logic
     all_sprites_list.update()
 
     # lazer mechanics
     # remove lazers if fly off the screen
     remove_lazers_from_screen(hero_lazer_list, alien_lazer_list)
 
-    # alien moveshet
+    # alien movement
     i = 0
-    alien_movement_and_attacking(alien_vessels_list, i)
+    alien_movement_and_attacking(alien_vessels_list, i, difficulty=normal)
 
-
-    # See if the lazer block has collided with anything. if yes both lazer and aliens are removed from their lists
+    # Check if the lazer block has collided with anything. If yes both lazer and aliens are removed from their lists
     hero_lazer_to_aliens_collision = pygame.sprite.groupcollide(hero_lazer_list, alien_vessels_list, True, True)
     alien_lazer_to_hero_collision = pygame.sprite.spritecollide(hero_spaceship, alien_lazer_list, True)
     if hero_lazer_to_aliens_collision:
+        score += 1
         crash_effect.play()
     if alien_lazer_to_hero_collision:
         crash_effect.play()
         hero_spaceship.health -= 1
         if hero_spaceship.health == 0:
             all_sprites_list.remove(hero_spaceship)
+            # hero_spaceship.kill()
+            LOST_MSG_SCREEN = True
+            while LOST_MSG_SCREEN:
+                you_lost()
 
     # Drawing
     # Clear the screan (screen to black)
@@ -166,6 +268,11 @@ while RUNNING:
 
     # Draw all the sprites
     all_sprites_list.draw(screen)
+
+    # show score
+    font = pygame.font.Font("AtariSmall.ttf", 30)
+    text = font.render(str(score), 1, WHITE)
+    screen.blit(text, (660, 10))
 
     # update the screen with the drawn
     pygame.display.flip()

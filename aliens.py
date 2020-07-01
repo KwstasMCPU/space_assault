@@ -3,6 +3,11 @@ from hero import Hero
 from random import choice
 
 class Alien(Hero):
+    def __init__(self, color, height, width, health, initialPosX):
+        super().__init__(color, height, width, health)
+
+        self.the_initialest_pos = initialPosX
+        self.direction = False
 
     def moveRight(self):
         self.rect.x += 1
@@ -24,4 +29,5 @@ class Alien(Hero):
         '''
         direction = self.direction = choice([True, False]) # True is for left, and False is for right
         return direction
+
 

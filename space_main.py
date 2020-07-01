@@ -65,11 +65,11 @@ def alien_generator(alien_color):
     setting up the x,y coordinates with the value of margin between them
     '''
     for x in range(margin, screen_size[0] - margin, margin):
+
         for y in range(margin, int(screen_size[1]/2), margin):
-            alien_vessel = Alien(alien_color, alien_height, alien_width, alien_health)
+            alien_vessel = Alien(alien_color, alien_height, alien_width, alien_health, x)
             alien_vessel.rect.x = x
             alien_vessel.rect.y = y
-            alien_pos_list.append(alien_vessel.get_initial_pos())
             alien_direction_list.append(alien_vessel.get_initial_dir())
             alien_vessels_list.add(alien_vessel)
             all_sprites_list.add(alien_vessel)
@@ -82,7 +82,7 @@ def alien_movement_and_attacking(alien_vessels_list, i, difficulty):
     sets the movement of the alien instances.
     the Alien class has a get__initial_pos and get_initial_dir method which gets their initial x,y coordinations and direction(left or right),
     those are stored within relevant lists ( alien_pos_list and alien_direction_list).
-    '''
+    '''    
     for alien in alien_vessels_list:
         alien_attack = choices([True, False], weights=[1, difficulty])
         if alien_attack[0] == True:
@@ -92,17 +92,16 @@ def alien_movement_and_attacking(alien_vessels_list, i, difficulty):
             lazer_sound.play()
             all_sprites_list.add(alien_lazer_shoot)
             alien_lazer_list.add(alien_lazer_shoot)
-        if alien_direction_list[i]:
+        if alien.direction:
             alien.moveLeft()
         else:
             alien.moveRight()
-        if alien.rect.x < (alien_pos_list[i] - choice([10, 20])):
+        if alien.rect.x < (alien.the_initialest_pos - choice([10, 20])):
             alien.moveRight()
-            alien_direction_list[i] = not alien_direction_list[i]
-        if alien.rect.x > (alien_pos_list[i] + choice([10, 20])):
+            alien.direction = not alien.direction
+        if alien.rect.x > (alien.the_initialest_pos + choice([10, 20])):
             alien.moveLeft()
-            alien_direction_list[i] = not alien_direction_list[i]
-        i += 1
+            alien.direction = not alien.direction
 
 def remove_lazers_from_screen(hero_lazer_list, alien_lazer_list):
         # remove hero lazer if flies off the screen
@@ -140,6 +139,7 @@ def you_lost():
                     alien.kill()
                 alien_generator(GREEN)
                 global hero_spaceship
+                del hero_spaceship
                 hero_spaceship = Hero(WHITE, hero_height, hero_width, hero_health)
                 hero_spaceship.rect.x = 350
                 hero_spaceship.rect.y = 700

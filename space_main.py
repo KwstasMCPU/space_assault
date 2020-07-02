@@ -19,7 +19,7 @@ score = 0
 easy = 4000
 normal = 2600
 hard = 1100
-epic = 500
+epic = 50
 
 # Setting colors
 BLACK = (0, 0, 0)
@@ -96,10 +96,12 @@ def alien_movement_and_attacking(alien_vessels_list, i, difficulty=normal):
             alien.moveLeft()
         else:
             alien.moveRight()
-        if alien.rect.x < (alien_pos_list[i] - choice([10, 20])):
+            # [30, 30, 30, 30, 60, 60, 60, 60, 90, 90, 90 etc]
+            # [alien1, alien2, ali]
+        if alien.rect.x < (alien_pos_list[i] - choice([10, 10])):
             alien.moveRight()
             alien_direction_list[i] = not alien_direction_list[i]
-        if alien.rect.x > (alien_pos_list[i] + choice([10, 20])):
+        if alien.rect.x > (alien_pos_list[i] + choice([10, 10])):
             alien.moveLeft()
             alien_direction_list[i] = not alien_direction_list[i]
         i += 1
@@ -139,7 +141,8 @@ def you_lost():
                 for alien in alien_vessels_list:
                     alien.kill()
                 alien_generator(GREEN)
-                hero_spaceship = Hero(WHITE, 10, 10, 3)
+                global hero_spaceship
+                hero_spaceship = Hero(WHITE, hero_height, hero_width, hero_health)
                 hero_spaceship.rect.x = 350
                 hero_spaceship.rect.y = 700
                 all_sprites_list.add(hero_spaceship)
@@ -257,7 +260,6 @@ while RUNNING:
         hero_spaceship.health -= 1
         if hero_spaceship.health == 0:
             all_sprites_list.remove(hero_spaceship)
-            # hero_spaceship.kill()
             LOST_MSG_SCREEN = True
             while LOST_MSG_SCREEN:
                 you_lost()
@@ -279,6 +281,5 @@ while RUNNING:
 
     # limit fps
     clock.tick(60)
-
     # end of main loop
 pygame.quit()

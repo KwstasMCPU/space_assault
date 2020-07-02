@@ -7,5 +7,5 @@ All dependencies that have to be installed for project to run properly are store
 
 To install all required dependencies run command:
 
-$ pip install -r requirements.txt
+``$ pip install -r requirements.txt``
 

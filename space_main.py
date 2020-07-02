@@ -96,8 +96,6 @@ def alien_movement_and_attacking(alien_vessels_list, i, difficulty=normal):
             alien.moveLeft()
         else:
             alien.moveRight()
-            # [30, 30, 30, 30, 60, 60, 60, 60, 90, 90, 90 etc]
-            # [alien1, alien2, ali]
         if alien.rect.x < (alien_pos_list[i] - choice([10, 10])):
             alien.moveRight()
             alien_direction_list[i] = not alien_direction_list[i]

@@ -147,7 +147,30 @@ def you_lost():
                 LOST_MSG_SCREEN = False
     return LOST_MSG_SCREEN
 
-# def you_won():
+def you_won():
+    global WON_MSG_SCREEN
+    screen.fill(BLACK)
+    display_message("AtariSmall.ttf", 30, 'YOU SAVED THE HUMAN RACE!! Play again?? [y]/[n]', 50, 350)
+    pygame.display.flip()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        elif event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_n or event.key==pygame.K_ESCAPE:
+                pygame.quit()
+                quit()
+            if event.key==pygame.K_y:
+                for alien in alien_vessels_list:
+                    alien.kill()
+                alien_generator(GREEN)
+                global hero_spaceship
+                hero_spaceship = Hero(WHITE, hero_height, hero_width, hero_health)
+                hero_spaceship.rect.x = 350
+                hero_spaceship.rect.y = 700
+                all_sprites_list.add(hero_spaceship)
+                WON_MSG_SCREEN = False
+    return WON_MSG_SCREEN
 
 def paused():
     global PAUSE
@@ -261,6 +284,14 @@ while RUNNING:
             LOST_MSG_SCREEN = True
             while LOST_MSG_SCREEN:
                 you_lost()
+    if len(alien_vessels_list) == 0:
+        all_sprites_list.remove(hero_spaceship)
+        for lazer in hero_lazer_list:
+            lazer.kill()
+            score = 0
+        WON_MSG_SCREEN = True
+        while WON_MSG_SCREEN:
+            you_won()
 
     # Drawing
     # Clear the screan (screen to black)

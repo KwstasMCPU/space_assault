@@ -16,10 +16,10 @@ pygame.display.set_caption('Space Invaders')
 score = 0
 
 # difficulty
-easy = 4000
-normal = 2600
-hard = 1100
-epic = 50
+easy = 2000
+normal = 1000
+hard = 400
+epic = 50 # hidden difficulty
 
 # Setting colors
 BLACK = (0, 0, 0)
@@ -77,7 +77,7 @@ def alien_generator(alien_color):
 alien_generator(GREEN)
 
 # Alien movement
-def alien_movement_and_attacking(alien_vessels_list, i, difficulty=normal):
+def alien_movement_and_attacking(alien_vessels_list, i, difficulty):
     '''
     sets the movement of the alien instances.
     the Alien class has a get__initial_pos and get_initial_dir method which gets their initial x,y coordinations and direction(left or right),
@@ -150,7 +150,7 @@ def you_lost():
 def you_won():
     global WON_MSG_SCREEN
     screen.fill(BLACK)
-    display_message("AtariSmall.ttf", 30, 'YOU SAVED THE HUMAN RACE!! Play again?? [y]/[n]', 50, 350)
+    display_message("AtariSmall.ttf", 30, 'YOU SAVED THE HUMAN RACE!! Play again? [y]/[n]', 30, 350)
     pygame.display.flip()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -190,6 +190,7 @@ def paused():
     return PAUSE
 
 def game_introduction():
+    global difficulty
     INTRO = True
     while INTRO:
         screen.fill(BLACK)
@@ -268,7 +269,7 @@ while RUNNING:
 
     # alien movement
     i = 0
-    alien_movement_and_attacking(alien_vessels_list, i, difficulty=normal)
+    alien_movement_and_attacking(alien_vessels_list, i, difficulty)
 
     # Check if the lazer block has collided with anything. If yes both lazer and aliens are removed from their lists
     hero_lazer_to_aliens_collision = pygame.sprite.groupcollide(hero_lazer_list, alien_vessels_list, True, True)
@@ -279,13 +280,16 @@ while RUNNING:
     if alien_lazer_to_hero_collision:
         crash_effect.play()
         hero_spaceship.health -= 1
-        if hero_spaceship.health == 0:
-            all_sprites_list.remove(hero_spaceship)
-            LOST_MSG_SCREEN = True
-            while LOST_MSG_SCREEN:
-                you_lost()
+        # check if hero vessel is destroyed
+    if hero_spaceship.health == 0:
+        all_sprites_list.remove(hero_spaceship)
+        LOST_MSG_SCREEN = True
+        while LOST_MSG_SCREEN:
+            you_lost()
+        # check if all enemies are destroyed
     if len(alien_vessels_list) == 0:
         all_sprites_list.remove(hero_spaceship)
+        # remove any lazers hovering the screen
         for lazer in hero_lazer_list:
             lazer.kill()
             score = 0

@@ -3,6 +3,9 @@ from hero import Hero
 from random import choice
 
 class Alien(Hero):
+    '''
+    
+    '''
     def __init__(self, color, height, width, health, initialPosX):
         super().__init__(color, height, width, health)
 

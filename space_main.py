@@ -20,6 +20,7 @@ easy = 2000
 normal = 1000
 hard = 400
 epic = 50 # hidden difficulty
+nightmare = 10
 
 # Setting colors
 BLACK = (0, 0, 0)

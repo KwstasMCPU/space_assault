@@ -1,5 +1,5 @@
 import pygame
-from hero import Hero
+from space_assault.envs.hero import Hero
 from random import choice
 
 class Alien(Hero):

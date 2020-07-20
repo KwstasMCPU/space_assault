@@ -4,7 +4,7 @@ from space_assault.envs.aliens import Alien
 from space_assault.envs.hero_lazer import Lazer
 from space_assault.envs.alien_lazer import Alien_lazer
 from random import randrange, choice, choices, randint
-
+from datetime import datetime
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -63,9 +63,14 @@ class SpaceAssault(gym.Env):
 
         self.alien_generator(GREEN)
         self.hero_spaceship = self.hero_generator()
-
+        self.shoot_time = datetime.now()
         self.done = False
         self.action_space = spaces.Discrete(5)
+
+    def check_shooting_condition(self):
+        seconds = datetime.now()
+        delta = seconds - self.shoot_time
+        return delta.seconds>1
 
     # Alien generator
     def alien_generator(self, alien_color):
@@ -128,6 +133,7 @@ class SpaceAssault(gym.Env):
                     self.all_sprites_list.remove(lazer)
 
     def step(self, action):
+        self.score = 0
         # moving the spaceship
         if action==0:
             self.hero_spaceship.moveUp(5)
@@ -137,7 +143,8 @@ class SpaceAssault(gym.Env):
             self.hero_spaceship.moveLeft(5)
         if action==3:
             self.hero_spaceship.moveRight(5)
-        if action==4:
+        if (action==4 and self.check_shooting_condition()):
+            self.shoot_time = datetime.now()
             hero_lazer_shoot = Lazer(RED, 4, 5, 1)
             hero_lazer_shoot.rect.x = self.hero_spaceship.rect.x + 5
             hero_lazer_shoot.rect.y = self.hero_spaceship.rect.y
@@ -156,7 +163,7 @@ class SpaceAssault(gym.Env):
             self.score = 1
         if alien_lazer_to_hero_collision:
             self.hero_spaceship.health -= 1
-            self.score = -1
+            self.score = -3
             # check if hero vessel is destroyed
         if self.hero_spaceship.health == 0:
             self.all_sprites_list.remove(hero_spaceship)

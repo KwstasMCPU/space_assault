@@ -29,8 +29,7 @@ hero_health = 3
 hero_spaceship = Hero(WHITE, hero_height, hero_width, hero_health)
 hero_spaceship.rect.x = 350
 hero_spaceship.rect.y = 700
-# all_sprites_list.add(hero_spaceship)
-# Alien vessels
+
 alien_height = 10
 alien_width = 10
 alien_health = 1
@@ -42,20 +41,15 @@ screen_size = (700 , 750)
 class SpaceAssault(gym.Env):
     metadata = {'render.modes': ['human']}
     def __init__(self):
-        pygame.init() # Prepare the pygame module for use
-        # Initialise screen screen
-        
+        pygame.init()
         self.screen = pygame.display.set_mode(screen_size)
         pygame.display.set_caption('Space Invaders')
 
-        # Score
         self.score = 0
 
-        # Setting the clock
         self.clock = pygame.time.Clock()
 
-        # Sprites
-        # setting up the groups
+
         self.all_sprites_list = pygame.sprite.Group()
         self.alien_vessels_list = pygame.sprite.Group()
         self.hero_lazer_list = pygame.sprite.Group()
@@ -65,14 +59,24 @@ class SpaceAssault(gym.Env):
         self.hero_spaceship = self.hero_generator()
         self.shoot_time = datetime.now()
         self.done = False
+        self.fps = 0
+        self.fps_last_considered_frame = datetime.now()
+        self.frames_count = 0
         self.action_space = spaces.Discrete(5)
 
     def check_shooting_condition(self):
-        seconds = datetime.now()
-        delta = seconds - self.shoot_time
-        return delta.seconds>1
+        if(self.frames_count%10==0):
+            return True
+        return False
 
-    # Alien generator
+    def count_fps(self):
+        self.frames_count+=1
+        delta = datetime.now() - self.fps_last_considered_frame
+        if(delta.seconds>=1):
+            self.fps = self.frames_count
+            self.frames_count=0
+            self.fps_last_considered_frame = datetime.now()
+
     def alien_generator(self, alien_color):
         '''
         multiplies the alien object on the screen.
@@ -94,7 +98,6 @@ class SpaceAssault(gym.Env):
         self.all_sprites_list.add(hero)
         return hero
 
-    # Alien movement
     def alien_movement_and_attacking(self):
         '''
         sets the movement of the alien instances.
@@ -121,20 +124,17 @@ class SpaceAssault(gym.Env):
                 alien.direction = not alien.direction
 
     def remove_lazers_from_screen(self):
-            # remove hero lazer if flies off the screen
             for lazer in self.hero_lazer_list:
                 if lazer.rect.y < 0:
                     self.hero_lazer_list.remove(lazer)
                     self.all_sprites_list.remove(lazer)
-            # remove alien lazer if flies off the screen
+
             for lazer in self.alien_lazer_list:
                 if lazer.rect.y > 750:
                     self.alien_lazer_list.remove(lazer)
                     self.all_sprites_list.remove(lazer)
 
     def step(self, action):
-        self.score = 0
-        # moving the spaceship
         if action==0:
             self.hero_spaceship.moveUp(5)
         if action==1:
@@ -154,16 +154,16 @@ class SpaceAssault(gym.Env):
         self.alien_movement_and_attacking()
         self.remove_lazers_from_screen()
 
-
-        # Check if the lazer block has collided with anything. If yes both lazer and aliens are removed from their lists
         hero_lazer_to_aliens_collision = pygame.sprite.groupcollide(self.hero_lazer_list, self.alien_vessels_list, True, True)
         alien_lazer_to_hero_collision = pygame.sprite.spritecollide(self.hero_spaceship, self.alien_lazer_list, True)
-
+        reward = 0
         if hero_lazer_to_aliens_collision:
-            self.score = 1
+            self.score += 1
+            reward = 1
         if alien_lazer_to_hero_collision:
             self.hero_spaceship.health -= 1
-            self.score = -3
+            self.score -= 3
+            reward = -3
             # check if hero vessel is destroyed
         if self.hero_spaceship.health == 0:
             self.all_sprites_list.remove(hero_spaceship)
@@ -174,8 +174,9 @@ class SpaceAssault(gym.Env):
             # remove any lazers hovering the screen
             for lazer in self.hero_lazer_list:
                 lazer.kill()
-            self.score = 10
-        return self.all_sprites_list, self.score, self.done, {}
+            reward = 10
+        self.count_fps()
+        return self.all_sprites_list, reward, self.done, {}
 
     def reset(self):
         for item in self.all_sprites_list:
@@ -193,23 +194,25 @@ class SpaceAssault(gym.Env):
         self.done = False
         return self.all_sprites_list
         
-
     def render(self, mode='human'):
-        # Drawing
-        # Clear the screan (screen to black)
         self.screen.fill(BLACK)
-
-        # Draw all the sprites
         self.all_sprites_list.draw(self.screen)
 
-        # show score
         font = pygame.font.Font("/home/michal/Repos/space-assault/space_assault/envs/AtariSmall.ttf", 30)# definitely to change
+
+        fps_sign = font.render(str('fps:'), 1, WHITE)
+        self.screen.blit(fps_sign, (400, 10))
+
+        fps = font.render(str(self.fps), 1, WHITE)
+        self.screen.blit(fps, (460, 10))
+
+        score_sign = font.render(str('score:'), 1, WHITE)
+        self.screen.blit(score_sign, (540, 10))
+
         text = font.render(str(self.score), 1, WHITE)
         self.screen.blit(text, (660, 10))
 
-        # update the screen with the drawn
         pygame.display.flip()
-        self.clock.tick(60)
 
     def close(self):
         pygame.quit()
